@@ -93,6 +93,7 @@ public class NewOSActivity extends AppCompatActivity {
                 if (localName.isEmpty() || name.isEmpty() || versionNumber.isEmpty()) {
 
                 } else {
+                    data.clear();
                     data.put("name", name);
                     data.put("version_number", Double.parseDouble(versionNumber));
                     data.put("local_name", localName);

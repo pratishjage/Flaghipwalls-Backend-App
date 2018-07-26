@@ -13,7 +13,7 @@
     android:layout_height="match_parent"
     tools:context=".UploadWallpaperActivity">
 
-    <ImageButton
+    <ImageView
         android:id="@+id/wall_imgview"
         android:layout_width="239dp"
         android:layout_height="162dp"

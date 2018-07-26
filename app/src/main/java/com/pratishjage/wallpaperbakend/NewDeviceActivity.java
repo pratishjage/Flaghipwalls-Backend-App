@@ -48,7 +48,7 @@ public class NewDeviceActivity extends AppCompatActivity {
     private int mYear, mMonth, mDay;
     final Calendar myCalendar = Calendar.getInstance();
     String TAG = getClass().getSimpleName();
-
+    HashMap<String, Object> data;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -66,7 +66,7 @@ public class NewDeviceActivity extends AppCompatActivity {
         mPlatformSpinner = findViewById(R.id.platform_spinner);
         mBrandSpinner = findViewById(R.id.brand_spinner);
         mAddDeviceBtn = findViewById(R.id.add_device_btn);
-
+        data = new HashMap<>();
 
         platformDocIds = new ArrayList<>();
         Platforms = new ArrayList<>();
@@ -88,13 +88,14 @@ public class NewDeviceActivity extends AppCompatActivity {
         mAddDeviceBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                HashMap<String, Object> data = new HashMap<>();
+
                 String deviceName = mDeviceNameEdt.getText().toString();
                 String ModelNo = mModelNoEdt.getText().toString();
                 String description = mDescriptionEdt.getText().toString();
                 if (deviceName.isEmpty() || ModelNo.isEmpty() || description.isEmpty()) {
                     Toast.makeText(NewDeviceActivity.this, "Add Fields", Toast.LENGTH_SHORT).show();
                 } else {
+                    data.clear();
                     data.put("deviceName", deviceName);
                     data.put("modelNo", ModelNo);
                     data.put("description", description);
