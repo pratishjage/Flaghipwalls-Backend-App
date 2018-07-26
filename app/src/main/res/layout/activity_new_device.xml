@@ -39,7 +39,7 @@
             android:id="@+id/model_no_edt"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="hint" />
+            android:hint="Model Number" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <com.google.android.material.textfield.TextInputLayout
@@ -57,7 +57,7 @@
             android:id="@+id/description_edt"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="hint" />
+            android:hint="Description" />
     </com.google.android.material.textfield.TextInputLayout>
 
     <TextView

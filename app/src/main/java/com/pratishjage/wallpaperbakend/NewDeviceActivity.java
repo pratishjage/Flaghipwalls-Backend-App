@@ -10,11 +10,16 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -22,6 +27,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Locale;
 
 import androidx.annotation.NonNull;
@@ -79,6 +85,49 @@ public class NewDeviceActivity extends AppCompatActivity {
         getBrands();
         getOS();
         getPlatforms();
+        mAddDeviceBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                HashMap<String, Object> data = new HashMap<>();
+                String deviceName = mDeviceNameEdt.getText().toString();
+                String ModelNo = mModelNoEdt.getText().toString();
+                String description = mDescriptionEdt.getText().toString();
+                if (deviceName.isEmpty() || ModelNo.isEmpty() || description.isEmpty()) {
+                    Toast.makeText(NewDeviceActivity.this, "Add Fields", Toast.LENGTH_SHORT).show();
+                } else {
+                    data.put("deviceName", deviceName);
+                    data.put("modelNo", ModelNo);
+                    data.put("description", description);
+                    data.put("platform_id", selectedPlatformId);
+                    data.put("platform_name", selectedPlatform);
+                    data.put("created_at", FieldValue.serverTimestamp());
+                    data.put("release_date", myCalendar.getTime());
+                    data.put("osID", selectedOSId);
+                    data.put("osName", selectedOS);
+                    data.put("brandID", selectedbrandId);
+                    data.put("brandName", selectedbrandName);
+                    addDevice(data);
+                }
+            }
+        });
+    }
+
+    private void addDevice(HashMap<String, Object> data) {
+        db.collection("devices")
+                .add(data)
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        Log.d(TAG, "DocumentSnapshot written with ID: " + documentReference.getId());
+                        Toast.makeText(NewDeviceActivity.this, "Device Added Success", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error adding Device", e);
+                    }
+                });
     }
 
     private void getPlatforms() {

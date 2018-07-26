@@ -94,7 +94,7 @@ public class NewOSActivity extends AppCompatActivity {
 
                 } else {
                     data.put("name", name);
-                    data.put("version_number", versionNumber);
+                    data.put("version_number", Double.parseDouble(versionNumber));
                     data.put("local_name", localName);
                     data.put("platform_id", selectedPlatformId);
                     data.put("platform_name", selectedPlatform);
