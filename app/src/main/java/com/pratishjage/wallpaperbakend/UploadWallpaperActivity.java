@@ -3,17 +3,14 @@ package com.pratishjage.wallpaperbakend;
 import android.app.DatePickerDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -35,7 +32,6 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -68,6 +64,9 @@ public class UploadWallpaperActivity extends AppCompatActivity {
     private boolean isImageUploaded;
     Map<String, Object> data;
     private String imgurl;
+    private String selectedPlatformId, selectedPlatform, selectedOSId, selectedOS, selectedbrandId, selectedbrandName, selectedOSReleaseDate, ModelNo, deviceDescription, deviceReleaseDate;
+
+    private Double selectedOSversion;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,7 +120,21 @@ public class UploadWallpaperActivity extends AppCompatActivity {
                     data.put("created_at", FieldValue.serverTimestamp());
                     data.put("release_date", myCalendar.getTime());
                     data.put("imgurl", imgurl);
-addWallpaper(data);
+
+                    data.put("deviceModelNo", ModelNo);
+                    data.put("deviceDescription", deviceDescription);
+                    data.put("platform_id", selectedPlatformId);
+                    data.put("platform_name", selectedPlatform);
+                    //   data.put("created_at", FieldValue.serverTimestamp());
+                    data.put("device_release_date", deviceReleaseDate);
+                    data.put("osID", selectedOSId);
+                    data.put("osName", selectedOS);
+                    data.put("os_release_date", selectedOSReleaseDate);
+                    data.put("os_version", selectedOSversion);
+                    data.put("brandID", selectedbrandId);
+                    data.put("brandName", selectedbrandName);
+
+                    addWallpaper(data);
                 }
 
 
@@ -159,6 +172,8 @@ addWallpaper(data);
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
+                            final QuerySnapshot snapshots = task.getResult();
+
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
                                 devices.add(document.getData().get("deviceName").toString());
@@ -171,6 +186,21 @@ addWallpaper(data);
                                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                                     selecteddeviceId = devicesDocIds.get(i);
                                     selecteddevice = devices.get(i);
+
+                                    Map<String, Object> singleDoc = snapshots.getDocuments().get(i).getData();
+                                    selectedPlatformId = singleDoc.get("platform_id").toString();
+                                    selectedPlatform = singleDoc.get("platform_name").toString();
+                                    selectedOSId = singleDoc.get("osID").toString();
+                                    selectedOS = singleDoc.get("osName").toString();
+                                    selectedbrandId = singleDoc.get("brandID").toString();
+                                    selectedbrandName = singleDoc.get("brandName").toString();
+                                    selectedOSReleaseDate = singleDoc.get("os_release_date").toString();
+                                    ModelNo = singleDoc.get("modelNo").toString();
+                                    deviceDescription = singleDoc.get("description").toString();
+                                    deviceReleaseDate = singleDoc.get("device_release_date").toString();
+                                    selectedOSversion = (Double) singleDoc.get("os_version");
+
+
                                 }
 
                                 @Override
@@ -245,7 +275,7 @@ addWallpaper(data);
             progressDialog.setTitle("Uploading...");
             progressDialog.show();
 
-            final StorageReference ref = storageReference.child("images/" + UUID.randomUUID().toString());
+            final StorageReference ref = storageReference.child("debug_wallpaper/" + UUID.randomUUID().toString());
             ref.putFile(filePath)
                     .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override

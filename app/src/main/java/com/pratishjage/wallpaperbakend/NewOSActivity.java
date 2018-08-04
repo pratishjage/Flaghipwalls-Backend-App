@@ -97,7 +97,7 @@ public class NewOSActivity extends AppCompatActivity {
                     data.put("name", name);
                     data.put("version_number", Double.parseDouble(versionNumber));
                     data.put("local_name", localName);
-                    data.put("platform_id", selectedPlatformId);
+                    data.put("platform_id", db.collection("platform").document(selectedPlatformId));
                     data.put("platform_name", selectedPlatform);
                     data.put("created_at", FieldValue.serverTimestamp());
                     data.put("release_date", myCalendar.getTime());

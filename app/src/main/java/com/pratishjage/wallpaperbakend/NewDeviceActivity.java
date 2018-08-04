@@ -28,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 
 import androidx.annotation.NonNull;
@@ -44,11 +45,13 @@ public class NewDeviceActivity extends AppCompatActivity {
     private Spinner mBrandSpinner;
     private Button mAddDeviceBtn;
     private ArrayList<String> platformDocIds, Platforms, osDocIDs, osList, brandDocIds, brands;
-    private String selectedPlatformId, selectedPlatform, selectedOSId, selectedOS, selectedbrandId, selectedbrandName;
+    private String selectedPlatformId, selectedPlatform, selectedOSId, selectedOS, selectedbrandId, selectedbrandName, selectedOSReleaseDate;
     private int mYear, mMonth, mDay;
+    private Double selectedOSversion;
     final Calendar myCalendar = Calendar.getInstance();
     String TAG = getClass().getSimpleName();
     HashMap<String, Object> data;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,9 +105,11 @@ public class NewDeviceActivity extends AppCompatActivity {
                     data.put("platform_id", selectedPlatformId);
                     data.put("platform_name", selectedPlatform);
                     data.put("created_at", FieldValue.serverTimestamp());
-                    data.put("release_date", myCalendar.getTime());
+                    data.put("device_release_date", myCalendar.getTime());
                     data.put("osID", selectedOSId);
                     data.put("osName", selectedOS);
+                    data.put("os_release_date", selectedOSReleaseDate);
+                    data.put("os_version", selectedOSversion);
                     data.put("brandID", selectedbrandId);
                     data.put("brandName", selectedbrandName);
                     addDevice(data);
@@ -173,18 +178,21 @@ public class NewDeviceActivity extends AppCompatActivity {
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
+                            final QuerySnapshot snapshots = task.getResult();
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
                                 osList.add(document.getData().get("name").toString());
                                 osDocIDs.add(document.getId());
                             }
-                            ArrayAdapter<String> spinnerAdp = new ArrayAdapter<>(NewDeviceActivity.this, R.layout.support_simple_spinner_dropdown_item, osList);
+                            final ArrayAdapter<String> spinnerAdp = new ArrayAdapter<>(NewDeviceActivity.this, R.layout.support_simple_spinner_dropdown_item, osList);
                             mOsSpinner.setAdapter(spinnerAdp);
                             mOsSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                 @Override
                                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                                     selectedOSId = osDocIDs.get(i);
                                     selectedOS = osList.get(i);
+                                    selectedOSversion = (Double) snapshots.getDocuments().get(i).getData().get("version_number");
+                                    selectedOSReleaseDate = snapshots.getDocuments().get(i).getData().get("release_date").toString();
                                 }
 
                                 @Override
