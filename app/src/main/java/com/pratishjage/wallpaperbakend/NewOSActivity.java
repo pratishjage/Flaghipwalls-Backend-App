@@ -40,10 +40,11 @@ public class NewOSActivity extends AppCompatActivity {
     private TextInputEditText mVersionNumberTxt, release_date_txt;
     private Button mSaveBtn;
     private Spinner mPlatformSpinner;
-    private ArrayList<String> platformDocIds, Platforms;
+    private ArrayList<String> platformDocIds, Platforms, plaformLogoUrls;
     private String selectedPlatformId, selectedPlatform;
     private int mYear, mMonth, mDay;
     final Calendar myCalendar = Calendar.getInstance();
+    private String selectedLogoUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +52,7 @@ public class NewOSActivity extends AppCompatActivity {
         setContentView(R.layout.activity_new_os);
         db = FirebaseFirestore.getInstance();
         data = new HashMap<>();
+        plaformLogoUrls = new ArrayList<>();
         platformDocIds = new ArrayList<>();
         Platforms = new ArrayList<>();
 
@@ -97,7 +99,10 @@ public class NewOSActivity extends AppCompatActivity {
                     data.put("name", name);
                     data.put("version_number", Double.parseDouble(versionNumber));
                     data.put("local_name", localName);
-                    data.put("platform_id", db.collection("platform").document(selectedPlatformId));
+                    data.put("platform_id", selectedPlatformId);
+                    data.put("platform_logo_url", selectedLogoUrl);
+
+
                     data.put("platform_name", selectedPlatform);
                     data.put("created_at", FieldValue.serverTimestamp());
                     data.put("release_date", myCalendar.getTime());
@@ -126,6 +131,7 @@ public class NewOSActivity extends AppCompatActivity {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
                                 Platforms.add(document.getData().get("name").toString());
                                 platformDocIds.add(document.getId());
+                                plaformLogoUrls.add(document.getData().get("logo_url").toString());
                             }
                             ArrayAdapter<String> spinnerAdp = new ArrayAdapter<>(NewOSActivity.this, R.layout.support_simple_spinner_dropdown_item, Platforms);
                             mPlatformSpinner.setAdapter(spinnerAdp);
@@ -134,6 +140,7 @@ public class NewOSActivity extends AppCompatActivity {
                                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                                     selectedPlatformId = platformDocIds.get(i);
                                     selectedPlatform = Platforms.get(i);
+                                    selectedLogoUrl=plaformLogoUrls.get(i);
                                 }
 
                                 @Override
