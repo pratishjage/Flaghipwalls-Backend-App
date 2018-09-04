@@ -32,6 +32,8 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -42,6 +44,7 @@ import java.util.UUID;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import id.zelory.compressor.Compressor;
 
 public class UploadWallpaperActivity extends AppCompatActivity {
     FirebaseFirestore db;
@@ -67,6 +70,9 @@ public class UploadWallpaperActivity extends AppCompatActivity {
     private String selectedPlatformId, selectedPlatform, selectedOSId, selectedOS, selectedbrandId, selectedbrandName, selectedOSReleaseDate, ModelNo, deviceDescription, deviceReleaseDate;
 
     private Double selectedOSversion;
+    private File actualImage;
+    private File compressedImageFile;
+    private String compressedImageUrl;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,6 +126,7 @@ public class UploadWallpaperActivity extends AppCompatActivity {
                     data.put("created_at", FieldValue.serverTimestamp());
                     data.put("release_date", myCalendar.getTime());
                     data.put("imgurl", imgurl);
+                    data.put("compressed_imgurl", compressedImageUrl);
 
                     data.put("deviceModelNo", ModelNo);
                     data.put("deviceDescription", deviceDescription);
@@ -262,9 +269,70 @@ public class UploadWallpaperActivity extends AppCompatActivity {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK
                 && data != null && data.getData() != null) {
             filePath = data.getData();
+            try {
+                actualImage = FileUtil.from(this, data.getData());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-            uploadImage();
+            try {
+                compressedImageFile = new Compressor(this).compressToFile(actualImage);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            uploadCompressed();
 
+
+        }
+    }
+
+    private void uploadCompressed() {
+
+        if (filePath != null) {
+            final ProgressDialog progressDialog = new ProgressDialog(this);
+            progressDialog.setTitle("Uploading...");
+            progressDialog.show();
+            Uri file = Uri.fromFile(compressedImageFile);
+
+            final StorageReference ref = storageReference.child("compress_wallpaper/" + UUID.randomUUID().toString());
+            ref.putFile(file)
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            progressDialog.dismiss();
+                            Toast.makeText(UploadWallpaperActivity.this, "Uploaded", Toast.LENGTH_SHORT).show();
+                            Task<Uri> downloadUUri = ref.getDownloadUrl();
+                            downloadUUri.addOnSuccessListener(new OnSuccessListener<Uri>() {
+                                @Override
+                                public void onSuccess(Uri uri) {
+                                    Log.d(TAG, "compress_wallpaper: " + uri.toString());
+                                    compressedImageUrl = uri.toString();
+                                    //isImageUploaded = true;
+                                    uploadImage();
+                                }
+                            });
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            progressDialog.dismiss();
+                            Toast.makeText(UploadWallpaperActivity.this, "Failed " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                            double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot
+                                    .getTotalByteCount());
+                            progressDialog.setMessage("Uploaded " + (int) progress + "%");
+                        }
+                    });
         }
     }
 

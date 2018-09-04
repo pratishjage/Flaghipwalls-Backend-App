@@ -30,6 +30,8 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.0-alpha4'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0-alpha4'
+    implementation 'id.zelory:compressor:2.1.0'
+
 }
 
 apply plugin: 'com.google.gms.google-services'
