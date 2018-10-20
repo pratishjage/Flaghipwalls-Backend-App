@@ -44,8 +44,8 @@ public class NewDeviceActivity extends AppCompatActivity {
     private Spinner mPlatformSpinner;
     private Spinner mBrandSpinner;
     private Button mAddDeviceBtn;
-    private ArrayList<String> platformDocIds, Platforms, osDocIDs, osList, brandDocIds, brands;
-    private String selectedPlatformId, selectedPlatform, selectedOSId, selectedOS, selectedbrandId, selectedbrandName, selectedOSReleaseDate;
+    private ArrayList<String> platformDocIds, Platforms, osDocIDs, osList, brandDocIds, brands, platformlogoUrls;
+    private String selectedPlatformId, selectedPlatform, selectedPlatformlogo, selectedOSId, selectedOS, selectedbrandId, selectedbrandName, selectedOSReleaseDate;
     private int mYear, mMonth, mDay;
     private Double selectedOSversion;
     final Calendar myCalendar = Calendar.getInstance();
@@ -73,6 +73,7 @@ public class NewDeviceActivity extends AppCompatActivity {
 
         platformDocIds = new ArrayList<>();
         Platforms = new ArrayList<>();
+        platformlogoUrls = new ArrayList<>();
         osDocIDs = new ArrayList<>();
         osList = new ArrayList<>();
         brandDocIds = new ArrayList<>();
@@ -104,6 +105,7 @@ public class NewDeviceActivity extends AppCompatActivity {
                     data.put("description", description);
                     data.put("platform_id", selectedPlatformId);
                     data.put("platform_name", selectedPlatform);
+                    data.put("platform_logo_url", selectedPlatformlogo);
                     data.put("created_at", FieldValue.serverTimestamp());
                     data.put("device_release_date", myCalendar.getTime());
                     data.put("osID", selectedOSId);
@@ -146,6 +148,7 @@ public class NewDeviceActivity extends AppCompatActivity {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
                                 Platforms.add(document.getData().get("name").toString());
+                                platformlogoUrls.add(document.getData().get("grey_logo").toString());
                                 platformDocIds.add(document.getId());
                             }
                             ArrayAdapter<String> spinnerAdp = new ArrayAdapter<>(NewDeviceActivity.this, R.layout.support_simple_spinner_dropdown_item, Platforms);
@@ -155,6 +158,7 @@ public class NewDeviceActivity extends AppCompatActivity {
                                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                                     selectedPlatformId = platformDocIds.get(i);
                                     selectedPlatform = Platforms.get(i);
+                                    selectedPlatformlogo = platformlogoUrls.get(i);
                                 }
 
                                 @Override
