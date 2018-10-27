@@ -13,6 +13,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -23,41 +24,20 @@ import java.util.HashMap;
 public class MainActivity extends AppCompatActivity {
     public static final String Note_KEY = "note";
     private DocumentReference documentReference;
-    EditText editText;
-    Button save_btn, addDeviceButton;
+    Button addDeviceButton;
     String TAG = getClass().getSimpleName();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            finish();
+            startActivity(new Intent(MainActivity.this, LoginActivity.class));
+        }
 
-        editText = findViewById(R.id.editText);
-        save_btn = findViewById(R.id.button2);
         addDeviceButton = findViewById(R.id.button3);
         documentReference = FirebaseFirestore.getInstance().document("sampledata/note");
-        save_btn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String dataString = editText.getText().toString();
-
-                if (!dataString.isEmpty()) {
-                    HashMap<String, String> map = new HashMap<>();
-                    map.put(Note_KEY, dataString);
-                    documentReference.set(map).addOnCompleteListener(new OnCompleteListener<Void>() {
-                        @Override
-                        public void onComplete(@NonNull Task<Void> task) {
-                            if (task.isSuccessful()) {
-                                Toast.makeText(MainActivity.this, "Success", Toast.LENGTH_SHORT).show();
-                            }
-                        }
-                    });
-                }
-
-
-            }
-        });
-
         findViewById(R.id.add_os_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -93,6 +73,16 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+        findViewById(R.id.logoutbutton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FirebaseAuth.getInstance().signOut();
+                finish();
+                startActivity(new Intent(MainActivity.this, LoginActivity.class));
+            }
+        });
+
     }
 
 
