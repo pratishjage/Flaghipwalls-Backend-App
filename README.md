@@ -1,3 +1,5 @@
-# wallpaper backend
+# Flaghipwalls Backend App
 
-Backend app for flagship walls
+Backend app to upload wallpapers to flagshipWalls App
+
+App is using Firebase Cloud Firestore, Firebase Storage and Firebase UI libraries
