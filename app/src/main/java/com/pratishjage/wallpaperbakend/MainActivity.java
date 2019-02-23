@@ -83,6 +83,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        findViewById(R.id.premium_button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MainActivity.this, PremiumWall.class));
+
+            }
+        });
+
+
+
     }
 
 
