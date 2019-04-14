@@ -10,6 +10,12 @@
     <uses-permission android:name="android.permission.READ_PROFILE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -17,29 +23,46 @@
         android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:name=".MyApp"
+        android:theme="@style/AppTheme1"
+        >
         <activity
             android:name=".MainActivity"
+            android:theme="@style/AppTheme1"
             android:screenOrientation="portrait"></activity>
         <activity
             android:name=".NewOSActivity"
+            android:theme="@style/AppTheme1"
             android:screenOrientation="portrait" />
         <activity
             android:name=".UploadWallpaperActivity"
+            android:theme="@style/AppTheme1"
             android:screenOrientation="portrait" />
         <activity
             android:name=".NewDeviceActivity"
+            android:theme="@style/AppTheme1"
             android:screenOrientation="portrait" />
         <activity
             android:name=".LoginActivity"
-            android:label="@string/title_activity_login">
+            android:label="@string/title_activity_login"
+            android:theme="@style/AppTheme1"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".PremiumWall"></activity>
+        <activity android:name=".PremiumWall"
+            android:theme="@style/AppTheme1"
+            ></activity>
+        <activity android:name=".MultiWallsUploadActivity"
+            android:theme="@style/AppTheme1"
+            ></activity>
+        <activity
+            android:name="com.zfdang.multiple_images_selector.ImagesSelectorActivity"
+            android:hardwareAccelerated="false"
+            android:configChanges="orientation|screenSize"/>
     </application>
 
 </manifest>

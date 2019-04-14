@@ -4,7 +4,7 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.pratishjage.wallpaperbakend"
-        minSdkVersion 18
+        minSdkVersion 23
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
@@ -32,6 +32,10 @@ dependencies {
     implementation 'id.zelory:compressor:2.1.0'
 
     implementation 'com.google.firebase:firebase-auth:16.0.1'
+
+
+    compile 'com.zfdang.multiple-images-selector:multiple-images-selector:1.1.5'
+
 }
 
 apply plugin: 'com.google.gms.google-services'
