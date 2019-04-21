@@ -1,7 +1,12 @@
 apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-android'
 
 android {
     compileSdkVersion 28
+    packagingOptions {
+        exclude 'META-INF/proguard/androidx-annotations.pro'
+    }
     defaultConfig {
         applicationId "com.pratishjage.wallpaperbakend"
         minSdkVersion 23
@@ -35,7 +40,18 @@ dependencies {
 
 
     compile 'com.zfdang.multiple-images-selector:multiple-images-selector:1.1.5'
+  //  compile "androidx.core:core-ktx:+"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+  //  implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.2.0'
 
+
+    // Kotlin + coroutines
+    implementation("androidx.work:work-runtime-ktx:2.0.1") {
+        exclude group: 'com.google.guava', module: 'listenablefuture'
+    }
 }
 
 apply plugin: 'com.google.gms.google-services'
+repositories {
+    mavenCentral()
+}

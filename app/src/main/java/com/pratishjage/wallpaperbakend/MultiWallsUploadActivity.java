@@ -23,6 +23,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.common.base.Splitter;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -37,6 +38,7 @@ import com.zfdang.multiple_images_selector.SelectorSettings;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -48,16 +50,23 @@ import java.util.UUID;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+
 import id.zelory.compressor.Compressor;
 
+import static com.pratishjage.wallpaperbakend.Cnstants.IMAGES_ARRAY;
+
 public class MultiWallsUploadActivity extends AppCompatActivity {
-    String TAG=getClass().getSimpleName();
+    String TAG = getClass().getSimpleName();
     private static final int REQUEST_CODE = 123;
     private ArrayList<String> mResults = new ArrayList<>();
+    private String[] imgsArray;
     FirebaseFirestore db;
     private StorageReference storageReference;
     private ArrayList<Uri> mFiles = new ArrayList<>();
-    private TextInputEditText descriptionTxt,nameTxt;
+    private TextInputEditText descriptionTxt, nameTxt;
     private Button addWallpaperBtn;
     private Spinner deviceSpinner;
     private ArrayList<String> devicesDocIds, devices;
@@ -67,6 +76,7 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
     private String selectedPlatformId, selectedPlatform, selectedOSId, selectedOS, selectedbrandId, selectedbrandName, selectedOSReleaseDate, ModelNo, deviceDescription, deviceReleaseDate;
     private TextView releaseDateTxt;
     private Double selectedOSversion;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,9 +120,24 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
         addWallpaperBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (mFiles.size()>0 && !nameTxt.getText().toString().isEmpty() && !descriptionTxt.getText().toString().isEmpty() && !releaseDateTxt.getText().toString().isEmpty()) {
-                    startUpload(mFiles);
+                if (mFiles.size() > 0 && !nameTxt.getText().toString().isEmpty() && !descriptionTxt.getText().toString().isEmpty() && !releaseDateTxt.getText().toString().isEmpty()) {
+                    //  startUpload(mFiles);
+                    Data imageData = new Data.Builder().putStringArray(IMAGES_ARRAY, imgsArray).putAll(getWorkdata(mFiles))
+                            .build();
+
+                    OneTimeWorkRequest uploadWorkRequest = new OneTimeWorkRequest.Builder(MultiUploadWork.class)
+                            .setInputData(imageData)
+                            .build();
+
+                    WorkManager.getInstance().enqueue(uploadWorkRequest);
+
+                  
+                } else {
+                    Toast.makeText(MultiWallsUploadActivity.this, "Add Fields", Toast.LENGTH_SHORT).show();
                 }
+
+
+                // buildDataToUpload("test","test",2);
             }
         });
 
@@ -127,23 +152,23 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if(requestCode == REQUEST_CODE) {
-            if(resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_CODE) {
+            if (resultCode == RESULT_OK) {
                 mResults = data.getStringArrayListExtra(SelectorSettings.SELECTOR_RESULTS);
                 assert mResults != null;
-
+                imgsArray= mResults.toArray(new String[mResults.size()]);
                 // show results in textview
                 StringBuffer sb = new StringBuffer();
                 sb.append(String.format("Totally %d images selected:", mResults.size())).append("\n");
-                for(String result : mResults) {
+                for (String result : mResults) {
                     Uri uri = Uri.fromFile(new File(result));
                     mFiles.add(uri);
                 }
 
 
                 //startUpload(mFiles);
-                Log.d(TAG, "onActivityResult: "+sb.toString());
-               // tvResults.setText(sb.toString());
+                Log.d(TAG, "onActivityResult: " + sb.toString());
+                // tvResults.setText(sb.toString());
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
@@ -152,9 +177,11 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
 
     private void startUpload(ArrayList<Uri> mFiles) {
         for (int i = 0; i < mFiles.size(); i++) {
-            File compressImage = compressImage(mFiles.get(i));
-            if (compressImage!=null){
-                uploadCompressed(mFiles.get(i),compressImage,i);
+            File compressImage = null;
+
+            compressImage = compressImage(mFiles.get(i));
+            if (compressImage != null) {
+                uploadCompressed(mFiles.get(i), compressImage, i);
             }
 
 
@@ -162,7 +189,7 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
     }
 
     private File compressImage(Uri uri) {
-        File actualImage=null,compressedImageFile=null;
+        File actualImage = null, compressedImageFile = null;
         try {
             actualImage = FileUtil.from(this, uri);
         } catch (IOException e) {
@@ -180,9 +207,9 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        if (actualImage!=null && compressedImageFile!=null){
+        if (actualImage != null && compressedImageFile != null) {
             return compressedImageFile;
-        }else {
+        } else {
             return null;
         }
     }
@@ -208,9 +235,9 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
                                 @Override
                                 public void onSuccess(Uri uri) {
                                     Log.d(TAG, "compress_wallpaper: " + uri.toString());
-                                 String   compressedImageUrl = uri.toString();
+                                    String compressedImageUrl = uri.toString();
                                     //isImageUploaded = true;
-                                    uploadImage(filePath,compressedImageUrl,position);
+                                    uploadImage(filePath, compressedImageUrl, position);
                                 }
                             });
                         }
@@ -252,8 +279,8 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
                                 @Override
                                 public void onSuccess(Uri uri) {
                                     Log.d(TAG, "Wallp_onSuccess: " + uri.toString());
-                                 String imgurl = uri.toString();
-                                    buildDataToUpload(imgurl,compressedImageUrl,position);
+                                    String imgurl = uri.toString();
+                                    buildDataToUpload(imgurl, compressedImageUrl, position);
                                 }
                             });
                         }
@@ -279,12 +306,12 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
     private void buildDataToUpload(String imgurl, String compressedImageUrl, int position) {
         String name = nameTxt.getText().toString();
         String description = descriptionTxt.getText().toString();
-        HashMap<Object, Object> data = new HashMap<>();
+        HashMap<String, Object> data = new HashMap<>();
         data.clear();
         data.put("deviceName", selecteddevice);
         data.put("deviceID", selecteddeviceId);
         data.put("description", description);
-        data.put("name", name+"_"+position);
+        data.put("name", name + "_" + position);
         data.put("created_at", FieldValue.serverTimestamp());
         data.put("release_date", myCalendar.getTime());
         data.put("imgurl", imgurl);
@@ -302,10 +329,11 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
         data.put("os_version", selectedOSversion);
         data.put("brandID", selectedbrandId);
         data.put("brandName", selectedbrandName);
+        Log.d(TAG, "buildDataToUpload: " + data.toString());
         addWallpaper(data);
     }
 
-    private void addWallpaper(HashMap<Object, Object> data) {
+    private void addWallpaper(HashMap<String, Object> data) {
         db.collection("testing_walls")
                 .add(data)
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
@@ -313,13 +341,13 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
                     public void onSuccess(DocumentReference documentReference) {
                         Log.d(TAG, "DocumentSnapshot written with ID: " + documentReference.getId());
                         Toast.makeText(MultiWallsUploadActivity.this, "Wallpaper Added", Toast.LENGTH_SHORT).show();
-                     //   isImageUploaded = false;
+                        //   isImageUploaded = false;
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Error adding document", e);
+                        Log.d(TAG, "Error_adding_document", e);
                         Toast.makeText(MultiWallsUploadActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -406,5 +434,38 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
                     }
                 }, mYear, mMonth, mDay);
         datePickerDialog.show();
+    }
+
+
+    private HashMap<String, Object> getWorkdata(ArrayList<Uri> mFiles) {
+        String name = nameTxt.getText().toString();
+        String description = descriptionTxt.getText().toString();
+        HashMap<String, Object> data = new HashMap<>();
+        data.clear();
+        data.put("deviceName", selecteddevice);
+        data.put("deviceID", selecteddeviceId);
+        data.put("description", description);
+        data.put("name", name);
+        data.put("created_at", "created");
+        data.put("release_date", myCalendar.getTime().toString());
+        data.put("uris", mFiles.toString());
+        data.put("deviceModelNo", ModelNo);
+        data.put("deviceDescription", deviceDescription);
+        data.put("platform_id", selectedPlatformId);
+        data.put("platform_name", selectedPlatform);
+        //   data.put("created_at", FieldValue.serverTimestamp());
+        data.put("device_release_date", deviceReleaseDate);
+        data.put("osID", selectedOSId);
+        data.put("osName", selectedOS);
+        data.put("os_release_date", selectedOSReleaseDate);
+        data.put("os_version", selectedOSversion);
+        data.put("brandID", selectedbrandId);
+        data.put("brandName", selectedbrandName);
+        Log.d(TAG, "getWorkdata: " + data.toString());
+        return data;
+    }
+
+    public Map<String, String> convertWithGuava(String mapAsString) {
+        return Splitter.on(',').withKeyValueSeparator('=').split(mapAsString);
     }
 }
