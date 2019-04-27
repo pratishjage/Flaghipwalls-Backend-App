@@ -356,6 +356,7 @@ public class UploadWallpaperActivity extends AppCompatActivity {
                                 public void onSuccess(Uri uri) {
                                     Log.d(TAG, "Wallp_onSuccess: " + uri.toString());
                                     imgurl = uri.toString();
+
                                     isImageUploaded = true;
                                 }
                             });

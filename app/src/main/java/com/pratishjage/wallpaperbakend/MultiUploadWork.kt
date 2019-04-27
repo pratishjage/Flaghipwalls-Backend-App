@@ -2,12 +2,12 @@ package com.pratishjage.wallpaperbakend
 
 import android.content.Context
 import android.net.Uri
+import android.os.Build
 import android.util.Log
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.google.android.gms.tasks.OnFailureListener
-import com.google.android.gms.tasks.OnSuccessListener
-import com.google.android.gms.tasks.Tasks
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.OnProgressListener
@@ -17,18 +17,18 @@ import java.io.File
 import java.io.IOException
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
-import kotlin.math.log
 import id.zelory.compressor.Compressor
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
-import java.nio.file.Files
+import kotlinx.coroutines.tasks.await
+import kotlin.collections.HashMap
 
 class MultiUploadWork(val appContext: Context, workparam: WorkerParameters) : Worker(appContext, workparam) {
 
     lateinit var mFiles: ArrayList<Uri>
     lateinit var db: FirebaseFirestore
     lateinit var storageRef: StorageReference
+    lateinit var mapData: MutableMap<String, Any>
     override fun doWork(): Result {
 
         db = FirebaseFirestore.getInstance();
@@ -36,31 +36,64 @@ class MultiUploadWork(val appContext: Context, workparam: WorkerParameters) : Wo
 
         val imgs = inputData.getStringArray(IMAGES_ARRAY)
         val keyValueMap = inputData.keyValueMap
-
+        mapData = HashMap()
+        mapData.putAll(inputData.keyValueMap)
+        mapData.remove(IMAGES_ARRAY)
+        mapData.put("created_at", FieldValue.serverTimestamp())
+        mapData.get("device_release_date")
+        mFiles = ArrayList();
         imgs!!.forEach {
             val uri = Uri.fromFile(File(it))
             mFiles.add(uri)
         }
-        mFiles.forEachIndexed { index, uri ->
-            runBlocking {
+        runBlocking {
+            mFiles.forEachIndexed { index, uri ->
+
+                Log.d("upload_status", "compressing : " + index + " image");
+
+
                 val compressedImage = compressImage(uri = uri, appContext = appContext)
-                compressedImage
-            }
-        }
-        mFiles.forEach {
-            runBlocking {
-                val compressedImage = compressImage(uri = it, appContext = appContext)
-                compressedImage
+                val file = Uri.fromFile(compressedImage)
+                Log.d("upload_status", "compressing : " + index + " image");
+
+
+                val compressStorageRef = storageRef.child("testing_compress_wallpaper/" + UUID.randomUUID().toString())
+
+                val taskSnapshot = compressStorageRef.putFile(file).await()
+                val progress = 100.0 * taskSnapshot.bytesTransferred / taskSnapshot
+                        .totalByteCount
+                Log.d("upload_status", "uploading : " + index + " image Progress :" + progress);
+                val compressDownloadURI = taskSnapshot.storage.downloadUrl.await()
+                val compressWallpaperUrl = compressDownloadURI.toString()
+                Log.d("upload_status", "uploadeedCompress : " + index + " image " + compressWallpaperUrl)
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    mapData.replace("compressed_imgurl", compressWallpaperUrl)
+                }
+
+
+                val OrignalWallStorageRef = storageRef.child("testing_debug_wallpaper/" + UUID.randomUUID().toString())
+
+                val taskSnapshotDebuig = OrignalWallStorageRef.putFile(mFiles.get(index)).await()
+                val debugprogress = 100.0 * taskSnapshotDebuig.bytesTransferred / taskSnapshotDebuig
+                        .totalByteCount
+                Log.d("upload_status", "uploadingOrignal : " + index + " image Progress :" + debugprogress);
+                val OrignalDownloadURl = taskSnapshotDebuig.storage.downloadUrl.await()
+                val OrignalWallpaperUrl = OrignalDownloadURl.toString()
+
+
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    mapData.replace("imgurl", OrignalWallpaperUrl)
+                }
+
+
+                val addWallpaper = db.collection("testing_walls").add(mapData).await()
+
 
             }
         }
-
         return Result.success()
-
-    }
-
-    suspend fun startUpload(mFiles: ArrayList<Uri>) = coroutineScope {
-
 
     }
 
@@ -92,28 +125,5 @@ class MultiUploadWork(val appContext: Context, workparam: WorkerParameters) : Wo
         }
     }
 
-    private suspend fun UploadComprees(filepath: Uri, compressedImagePath: Uri, position: Int) {
-
-        /*Tasks.await(storageRef.child("testing_compress_wallpaper/" + UUID.randomUUID().toString()).putFile(compressedImagePath))
-
-        storageRef.child("testing_compress_wallpaper/" + UUID.randomUUID().toString()).putFile(compressedImagePath).continueWithTask { uploadTask->
-            if (!uploadTask.isSuccessful){
-                throw uploadTask.exception!!
-            }
-
-            return@continueWithTask storageRef.downloadUrl
-        }*/
-        storageRef.child("testing_compress_wallpaper/" + UUID.randomUUID().toString()).putFile(compressedImagePath).addOnSuccessListener {
-
-        }.addOnFailureListener(OnFailureListener {
-            false
-        }).addOnProgressListener(OnProgressListener {
-            val progress = 100.0 * it.getBytesTransferred() / it
-                    .getTotalByteCount()
-
-            Log.d("MultiUploadWork", "Progress_Compressed postion " + position + " :" + progress)
-
-        })
-    }
 
 }

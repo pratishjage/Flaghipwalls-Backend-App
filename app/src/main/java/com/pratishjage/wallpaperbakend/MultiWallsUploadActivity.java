@@ -122,7 +122,7 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if (mFiles.size() > 0 && !nameTxt.getText().toString().isEmpty() && !descriptionTxt.getText().toString().isEmpty() && !releaseDateTxt.getText().toString().isEmpty()) {
                     //  startUpload(mFiles);
-                    Data imageData = new Data.Builder().putStringArray(IMAGES_ARRAY, imgsArray).putAll(getWorkdata(mFiles))
+                    Data imageData = new Data.Builder().putStringArray(IMAGES_ARRAY, imgsArray).putAll(getWorkdata())
                             .build();
 
                     OneTimeWorkRequest uploadWorkRequest = new OneTimeWorkRequest.Builder(MultiUploadWork.class)
@@ -437,7 +437,7 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
     }
 
 
-    private HashMap<String, Object> getWorkdata(ArrayList<Uri> mFiles) {
+    private HashMap<String, Object> getWorkdata() {
         String name = nameTxt.getText().toString();
         String description = descriptionTxt.getText().toString();
         HashMap<String, Object> data = new HashMap<>();
@@ -446,9 +446,8 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
         data.put("deviceID", selecteddeviceId);
         data.put("description", description);
         data.put("name", name);
-        data.put("created_at", "created");
+      //  data.put("created_at", "created");
         data.put("release_date", myCalendar.getTime().toString());
-        data.put("uris", mFiles.toString());
         data.put("deviceModelNo", ModelNo);
         data.put("deviceDescription", deviceDescription);
         data.put("platform_id", selectedPlatformId);
@@ -461,6 +460,9 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
         data.put("os_version", selectedOSversion);
         data.put("brandID", selectedbrandId);
         data.put("brandName", selectedbrandName);
+
+        data.put("compressed_imgurl", "compress");
+        data.put("imgurl", "imageurl");
         Log.d(TAG, "getWorkdata: " + data.toString());
         return data;
     }
