@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.google.android.gms.tasks.OnFailureListener
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.storage.FirebaseStorage
@@ -21,6 +22,8 @@ import id.zelory.compressor.Compressor
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.time.LocalDate
 import kotlin.collections.HashMap
 
 class MultiUploadWork(val appContext: Context, workparam: WorkerParameters) : Worker(appContext, workparam) {
@@ -29,18 +32,49 @@ class MultiUploadWork(val appContext: Context, workparam: WorkerParameters) : Wo
     lateinit var db: FirebaseFirestore
     lateinit var storageRef: StorageReference
     lateinit var mapData: MutableMap<String, Any>
+    lateinit var Wallpapername:String
     override fun doWork(): Result {
 
         db = FirebaseFirestore.getInstance();
         storageRef = FirebaseStorage.getInstance().getReference();
 
         val imgs = inputData.getStringArray(IMAGES_ARRAY)
-        val keyValueMap = inputData.keyValueMap
+
+        Wallpapername= String()
         mapData = HashMap()
+
+
+
         mapData.putAll(inputData.keyValueMap)
         mapData.remove(IMAGES_ARRAY)
         mapData.put("created_at", FieldValue.serverTimestamp())
-        mapData.get("device_release_date")
+        Wallpapername=mapData.get("name").toString()
+        val formatter = SimpleDateFormat("EEE MMM dd HH:mm:ss zzzz yyyy", Locale.US)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            val temp = mapData.get("device_release_date").toString()
+            val deviceDate = formatter.parse(temp)
+                mapData.replace("device_release_date", Timestamp(deviceDate))
+
+
+            val temp1 = mapData.get("os_release_date").toString()
+            val osDate = formatter.parse(temp1)
+
+                mapData.replace("os_release_date", Timestamp(osDate))
+
+
+
+            val temp2 = mapData.get("release_date").toString()
+            val wallDate = formatter.parse(temp2)
+
+                mapData.replace("release_date", Timestamp(wallDate))
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+
         mFiles = ArrayList();
         imgs!!.forEach {
             val uri = Uri.fromFile(File(it))
@@ -85,6 +119,8 @@ class MultiUploadWork(val appContext: Context, workparam: WorkerParameters) : Wo
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     mapData.replace("imgurl", OrignalWallpaperUrl)
+                    mapData.replace("name",Wallpapername+"_"+(index+1))
+
                 }
 
 

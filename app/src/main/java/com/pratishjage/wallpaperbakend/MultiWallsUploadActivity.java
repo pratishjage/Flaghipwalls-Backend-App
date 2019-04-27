@@ -24,6 +24,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.common.base.Splitter;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -42,6 +43,7 @@ import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -73,7 +75,8 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
     private String selecteddeviceId, selecteddevice;
     private int mYear, mMonth, mDay;
     final Calendar myCalendar = Calendar.getInstance();
-    private String selectedPlatformId, selectedPlatform, selectedOSId, selectedOS, selectedbrandId, selectedbrandName, selectedOSReleaseDate, ModelNo, deviceDescription, deviceReleaseDate;
+    private String selectedPlatformId, selectedPlatform, selectedOSId, selectedOS, selectedbrandId, selectedbrandName, selectedOSReleaseDate, ModelNo, deviceDescription;
+    private Timestamp deviceReleaseDate;
     private TextView releaseDateTxt;
     private Double selectedOSversion;
 
@@ -385,9 +388,8 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
                                     selectedOSReleaseDate = singleDoc.get("os_release_date").toString();
                                     ModelNo = singleDoc.get("modelNo").toString();
                                     deviceDescription = singleDoc.get("description").toString();
-                                    deviceReleaseDate = singleDoc.get("device_release_date").toString();
+                                    deviceReleaseDate = (Timestamp) singleDoc.get("device_release_date");
                                     selectedOSversion = (Double) singleDoc.get("os_version");
-
 
                                 }
 
@@ -453,7 +455,7 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
         data.put("platform_id", selectedPlatformId);
         data.put("platform_name", selectedPlatform);
         //   data.put("created_at", FieldValue.serverTimestamp());
-        data.put("device_release_date", deviceReleaseDate);
+        data.put("device_release_date", deviceReleaseDate.toDate().toString());
         data.put("osID", selectedOSId);
         data.put("osName", selectedOS);
         data.put("os_release_date", selectedOSReleaseDate);
