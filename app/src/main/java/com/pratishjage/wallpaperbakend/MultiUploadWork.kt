@@ -91,7 +91,7 @@ class MultiUploadWork(val appContext: Context, workparam: WorkerParameters) : Wo
                 Log.d("upload_status", "compressing : " + index + " image");
 
 
-                val compressStorageRef = storageRef.child("testing_compress_wallpaper/" + UUID.randomUUID().toString())
+                val compressStorageRef = storageRef.child("compress_wallpaper/" + UUID.randomUUID().toString())
 
                 val taskSnapshot = compressStorageRef.putFile(file).await()
                 val progress = 100.0 * taskSnapshot.bytesTransferred / taskSnapshot
@@ -106,7 +106,7 @@ class MultiUploadWork(val appContext: Context, workparam: WorkerParameters) : Wo
                 }
 
 
-                val OrignalWallStorageRef = storageRef.child("testing_debug_wallpaper/" + UUID.randomUUID().toString())
+                val OrignalWallStorageRef = storageRef.child("debug_wallpaper/" + UUID.randomUUID().toString())
 
                 val taskSnapshotDebuig = OrignalWallStorageRef.putFile(mFiles.get(index)).await()
                 val debugprogress = 100.0 * taskSnapshotDebuig.bytesTransferred / taskSnapshotDebuig
@@ -124,7 +124,7 @@ class MultiUploadWork(val appContext: Context, workparam: WorkerParameters) : Wo
                 }
 
 
-                val addWallpaper = db.collection("testing_walls").add(mapData).await()
+                val addWallpaper = db.collection("debug_wallpaper").add(mapData).await()
 
 
             }
