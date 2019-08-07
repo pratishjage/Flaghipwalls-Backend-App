@@ -79,6 +79,7 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
     private Timestamp deviceReleaseDate;
     private TextView releaseDateTxt;
     private Double selectedOSversion;
+    private boolean isJobScheduled;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -125,16 +126,18 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
             public void onClick(View view) {
                 if (mFiles.size() > 0 && !nameTxt.getText().toString().isEmpty() && !descriptionTxt.getText().toString().isEmpty() && !releaseDateTxt.getText().toString().isEmpty()) {
                     //  startUpload(mFiles);
-                    Data imageData = new Data.Builder().putStringArray(IMAGES_ARRAY, imgsArray).putAll(getWorkdata())
-                            .build();
+                    if (!isJobScheduled) {
+                        isJobScheduled = true;
+                        Data imageData = new Data.Builder().putStringArray(IMAGES_ARRAY, imgsArray).putAll(getWorkdata())
+                                .build();
 
-                    OneTimeWorkRequest uploadWorkRequest = new OneTimeWorkRequest.Builder(MultiUploadWork.class)
-                            .setInputData(imageData)
-                            .build();
+                        OneTimeWorkRequest uploadWorkRequest = new OneTimeWorkRequest.Builder(MultiUploadWork.class)
+                                .setInputData(imageData)
+                                .build();
 
-                    WorkManager.getInstance().enqueue(uploadWorkRequest);
+                        WorkManager.getInstance().enqueue(uploadWorkRequest);
 
-                  
+                    }
                 } else {
                     Toast.makeText(MultiWallsUploadActivity.this, "Add Fields", Toast.LENGTH_SHORT).show();
                 }
@@ -159,7 +162,7 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
             if (resultCode == RESULT_OK) {
                 mResults = data.getStringArrayListExtra(SelectorSettings.SELECTOR_RESULTS);
                 assert mResults != null;
-                imgsArray= mResults.toArray(new String[mResults.size()]);
+                imgsArray = mResults.toArray(new String[mResults.size()]);
                 // show results in textview
                 StringBuffer sb = new StringBuffer();
                 sb.append(String.format("Totally %d images selected:", mResults.size())).append("\n");
@@ -448,7 +451,7 @@ public class MultiWallsUploadActivity extends AppCompatActivity {
         data.put("deviceID", selecteddeviceId);
         data.put("description", description);
         data.put("name", name);
-      //  data.put("created_at", "created");
+        //  data.put("created_at", "created");
         data.put("release_date", myCalendar.getTime().toString());
         data.put("deviceModelNo", ModelNo);
         data.put("deviceDescription", deviceDescription);

@@ -126,7 +126,6 @@ class MultiUploadWork(val appContext: Context, workparam: WorkerParameters) : Wo
 
                 val addWallpaper = db.collection("debug_wallpaper").add(mapData).await()
 
-
             }
         }
         return Result.success()
